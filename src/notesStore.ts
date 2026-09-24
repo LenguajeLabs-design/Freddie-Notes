@@ -10,6 +10,11 @@ import { timestampMillis } from './lib'
 
 const demoKey = 'quiet-notes-demo'
 
+function makeNoteId() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID()
+  return `note-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
+
 function readDemoNotes() {
   try {
     const stored = localStorage.getItem(demoKey)
@@ -108,7 +113,7 @@ export function useNotes(user: User | null) {
   }
 
   async function createNote() {
-    const id = crypto.randomUUID()
+    const id = makeNoteId()
     const note = { id, ...({ title: '', content: '<p></p>', plainText: '', createdAt: new Date(), updatedAt: new Date(), pinned: false, archived: false, tags: [], deletedAt: null } as Omit<Note, 'id'>) }
     setNotes((current) => [note, ...current])
     if (db && user) await setDoc(doc(db, 'users', user.uid, 'notes', id), { ...note, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
